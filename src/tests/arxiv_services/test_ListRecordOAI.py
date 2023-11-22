@@ -1,5 +1,6 @@
 import datetime
 import pytest
+import time
 
 from flask_api_crawler_arxiv.arxiv_services.ListRecordOAI import ListRecordOAI
 
@@ -56,6 +57,9 @@ class TestListRecordOAI:
         assert query_parameters.until == until_date
 
     def test_list_record(self):
+        time.sleep(
+            5
+        )  # Definetely not the best idea but API block users from querying data every 5s.
         until_date = datetime.date(2000, 1, 1)
         query_parameters = self.list_record._build_parameters_query(until_date)
         result = self.list_record._list_record(query_parameters)

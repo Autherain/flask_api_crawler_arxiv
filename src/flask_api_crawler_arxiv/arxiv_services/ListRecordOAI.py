@@ -146,15 +146,18 @@ class ListRecordOAI:
             self._logger.warning("Unexpected error with API :%s", e)
             raise RuntimeError() from e
 
-    def get_record(self, until_date: datetime.date(2000, 1, 1)) -> str:
+    def get_record(self, until_date: datetime.date = None) -> str:
         """
         Fetches records from the ARxiv API until the specified date.
 
         Parameters:
-        - until_date (datetime.date): The date until which records should be fetched.
+        - until_date (datetime.date): The date until which records should be fetched. Defaults to None.
 
         Returns:
         - str: Retrieved records in string format.
         """
+        if until_date is None:
+            until_date = datetime.date(year=2000, month=1, day=1)
+
         query_parameter = self._build_parameters_query(until_date)
         return self._list_record(query_parameter)
