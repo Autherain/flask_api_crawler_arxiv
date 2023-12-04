@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 
-
 class MongoDBManager:
     """
     MongoDBManager class for managing MongoDB connections and transactions.
