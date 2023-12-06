@@ -2,12 +2,15 @@ import pytest
 from unittest.mock import MagicMock
 from flask_api_crawler_arxiv.mongodb.MongodbManager import (
     MongoDBManager,
-)  # Replace 'your_module' with the actual module name
+)
 
 
+# You need to spin up a mongodb instance based upon the connection string
 @pytest.fixture
 def mongo_manager():
-    connection_string = "mongodb://mongodbuser:your_mongodb_root_password@localhost:27017"
+    connection_string = (
+        "mongodb://mongodbuser:your_mongodb_root_password@localhost:27017"
+    )
     database_name = "flaskdb"
     manager = MongoDBManager(connection_string, database_name)
     yield manager
