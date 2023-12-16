@@ -13,7 +13,6 @@ app_config : dict
     The dictionnary with the parameters to use.
 """
 
-import os
-from dotenv import dotenv_values
+from dotenv import dotenv_values, find_dotenv
 
-app_config = {**dotenv_values(".env")}
+app_config = {**dotenv_values(find_dotenv())}
