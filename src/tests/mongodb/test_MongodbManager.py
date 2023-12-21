@@ -1,62 +1,67 @@
 import pytest
+from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
+from flask_api_crawler_arxiv.flask_api.app import application
 from unittest.mock import MagicMock
-from flask_api_crawler_arxiv.mongodb.MongodbManager import (
-    MongoDBManager,
-)
+from bson import ObjectId
 
 
-# You need to spin up a mongodb instance based upon the connection string
 @pytest.fixture
-def mongo_manager():
-    connection_string = (
-        "mongodb://mongodbuser:your_mongodb_root_password@localhost:27017"
-    )
-    database_name = "flaskdb"
-    manager = MongoDBManager(connection_string, database_name)
-    yield manager
-    manager.close_connection()
+def client():
+    application.config["TESTING"] = True
+    application.config["DEBUG"] = False
+
+    # Mock MongoDBManager
+    mongodb_manager_mock = MagicMock(spec=MongoDBManager)
+    MongoDBManager.return_value = mongodb_manager_mock
+
+    with application.test_client() as client:
+        yield client
 
 
-def test_open_connection(mongo_manager):
-    assert mongo_manager.client is None
-    assert mongo_manager.db is None
+def test_insert_and_retrieve_article(client):
+    # Mock MongoDB connection
+    mongodb_manager_mock = MongoDBManager.return_value
+    mongodb_manager_mock.client = MagicMock()
+    mongodb_manager_mock.db = MagicMock()
 
-    mongo_manager.open_connection()
+    # Define a sample article for testing
+    sample_article = {
+        "header": "Test Article",
+        "metadata": {
+            "oai_dc:dc.date": "2023-01-01",
+            "oai_dc:dc.subject": "Test Subject",
+            # ... other metadata fields ...
+        },
+    }
 
-    assert mongo_manager.client is not None
-    assert mongo_manager.db is not None
+    # Insert the sample article
+    response = client.post("/articles", json=sample_article)
+    assert response.status_code == 201
 
-
-def test_close_connection(mongo_manager):
-    mongo_manager.open_connection()
-    assert mongo_manager.client is not None
-
-    mongo_manager.close_connection()
-
-    assert mongo_manager.client is None
-    assert mongo_manager.db is None
-
-
-def test_perform_transaction(mongo_manager):
-    mock_operations = MagicMock()
-
-    mongo_manager.open_connection()
-
-    # Perform a successful transaction
-    mongo_manager.perform_transaction(mock_operations)
-
-    # Ensure that the transaction_operations function was called
-    mock_operations.assert_called_once_with(mongo_manager.db)
+    # Retrieve the inserted article by ID
+    inserted_id = response.json["id"]
+    response = client.get(f"/article/{inserted_id}")
+    assert response.status_code == 200
+    assert response.json["header"] == "Test Article"
+    assert response.json["metadata"]["oai_dc:dc.subject"] == "Test Subject"
 
 
-def test_perform_transaction_with_exception(mongo_manager):
-    mock_operations = MagicMock(side_effect=Exception("Test exception"))
+def test_invalid_object_id_format(client):
+    response = client.get("/article/invalid_id")
+    assert response.status_code == 400
+    assert response.json["error"] == "Invalid ObjectId format"
 
-    mongo_manager.open_connection()
 
-    # Perform a transaction with an exception
-    with pytest.raises(Exception, match="Test exception"):
-        mongo_manager.perform_transaction(mock_operations)
+def test_article_not_found(client):
+    # Mock MongoDB connection
+    mongodb_manager_mock = MongoDBManager.return_value
+    mongodb_manager_mock.client = MagicMock()
+    mongodb_manager_mock.db = MagicMock()
 
-    # Ensure that the transaction_operations function was called
-    mock_operations.assert_called_once_with(mongo_manager.db)
+    # Try to retrieve an article with a non-existent ID
+    response = client.get("/article/60409e211c45b874f812589f")
+    assert response.status_code == 404
+    assert response.json["error"] == "Article not found"
+
+
+# Add more test cases as needed...

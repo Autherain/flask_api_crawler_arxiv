@@ -1,18 +1,18 @@
+import logging
+from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
+from flask_api_crawler_arxiv.arxiv_services.RecordConverterOAI import RecordConverterOAI
+from flask_api_crawler_arxiv.arxiv_services.ListRecordOAI import ListRecordOAI
+from flask_api_crawler_arxiv.app_config_dict import app_config
 import os
 import sys
 from datetime import date
 
 # Add the path to the modules directory (going up two levels). It will enable not to meddle with path when invoking this script with cron.
 current_script_path = os.path.dirname(os.path.abspath(__file__))
-project_root_path = os.path.abspath(os.path.join(current_script_path, "..", ".."))
+project_root_path = os.path.abspath(
+    os.path.join(current_script_path, "..", ".."))
 sys.path.append(project_root_path)
 
-from flask_api_crawler_arxiv.app_config_dict import app_config
-from flask_api_crawler_arxiv.arxiv_services.ListRecordOAI import ListRecordOAI
-from flask_api_crawler_arxiv.arxiv_services.RecordConverterOAI import RecordConverterOAI
-from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
-
-import logging
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,7 +30,8 @@ def cron_inject_data_mongodb():
     arxiv_record_converter_service = RecordConverterOAI()
 
     logging.info("Retrieving all data from arxiv")
-    xml_string_of_today_from_arxiv = arxiv_list_record_service.get_record(date.today())
+    xml_string_of_today_from_arxiv = arxiv_list_record_service.get_record(
+        date.today())
 
     logging.info("Converting XML string into dictionnary")
     dict_of_today_from_arxiv = arxiv_record_converter_service.get_listrecord_dict(
@@ -39,7 +40,8 @@ def cron_inject_data_mongodb():
 
     # Connection string is a tad different than usual simply because the name of the service mongodb is mongodb so no localhost here
     manager = MongoDBManager(
-        f'mongodb://{app_config["MONGO_INITDB_ROOT_USERNAME"]}:{app_config["MONGO_INITDB_ROOT_PASSWORD"]}@{app_config["MONGO_CONTAINER_NAME"]}:{app_config["MONGO_DOCKER_PORT"]}',
+        f'mongodb://{app_config["MONGO_INITDB_ROOT_USERNAME"]}:{app_config["MONGO_INITDB_ROOT_PASSWORD"]}@{
+            app_config["MONGO_CONTAINER_NAME"]}:{app_config["MONGO_DOCKER_PORT"]}',
         f'{app_config["MONGO_INITDB_DATABASE"]}',
     )
 
