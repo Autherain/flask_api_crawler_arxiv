@@ -1,8 +1,10 @@
 import os
+
+from bson import json_util
 from bson.objectid import ObjectId
 import platform
 from datetime import datetime
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 
 from flask_api_crawler_arxiv.app_config_dict import app_config
 from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
@@ -10,55 +12,47 @@ from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
 application = Flask(__name__)
 
 db_manager = MongoDBManager(
-    f'mongodb://{app_config["MONGO_INITDB_ROOT_USERNAME"]}:{app_config["MONGO_INITDB_ROOT_PASSWORD"]}@{
-        app_config["MONGO_CONTAINER_NAME"]}:{app_config["MONGO_DOCKER_PORT"]}',
+    f'mongodb://{app_config["MONGO_INITDB_ROOT_USERNAME"]}:{app_config["MONGO_INITDB_ROOT_PASSWORD"]}@{app_config["MONGO_CONTAINER_NAME"]}:{app_config["MONGO_DOCKER_PORT"]}',
     f'{app_config["MONGO_INITDB_DATABASE"]}',
 )
 
 
+def return_pretty_json_from_bson(bson_data):
+    # Use json_util to serialize MongoDB objects
+    articles_list = json_util.dumps(bson_data, indent=4)
+    # Set the response headers for JSON content
+    response = Response(articles_list, content_type="application/json")
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    return response
+
+
 @application.route("/articles/", methods=["GET"])
 def get_articles():
-    # Pagination parameters
+    # Set a fixed per_page value
+    per_page = 50  # Maximum entities per page
+
+    # Get the page number from the URL or default to 1
     page = int(request.args.get("page", 1))
-    per_page = int(request.args.get("per_page", 10))
 
-    # Filter parameters
-    start_date = request.args.get("start_date")
-    end_date = request.args.get("end_date")
-    subcategory = request.args.get("subcategory")
-
-    # Build the query based on filter parameters
-    query = {}
-
-    if start_date:
-        query["metadata.oai_dc:dc.date"] = {"$gte": start_date}
-
-    if end_date:
-        query["metadata.oai_dc:dc.date"] = {"$lte": end_date}
-
-    if subcategory:
-        query["metadata.oai_dc:dc.subject"] = subcategory
-
-    # Define the transaction operation to retrieve articles with pagination and filtering
-    def get_articles_transaction(db):
-        articles = (
-            db.arxiv_data_doc.find(query).skip((page - 1) * per_page).limit(per_page)
+    # Define the transaction operation to retrieve all articles with pagination
+    def get_all_articles_transaction(db):
+        articles_cursor = (
+            db.arxiv_data_doc.find().skip((page - 1) * per_page).limit(per_page)
         )
 
-        article_list = [article for article in articles]
-
-        return jsonify(article_list), 200
+        return return_pretty_json_from_bson(articles_cursor)
 
     # Perform the transaction
     try:
         db_manager.open_connection()
-        response = db_manager.perform_transaction(get_articles_transaction)
+        response = db_manager.perform_transaction(get_all_articles_transaction)
         db_manager.close_connection()
 
         return response
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}, 500
 
 
 @application.route("/article/<id>", methods=["GET"])
@@ -73,7 +67,7 @@ def get_article_by_id(id):
     def get_article_transaction(db):
         article = db.arxiv_data_doc.find_one({"_id": obj_id})
         if article:
-            return jsonify(article), 200
+            return return_pretty_json_from_bson(article)
         else:
             return jsonify({"error": "Article not found"}), 404
 
@@ -103,7 +97,7 @@ def get_article_summary_by_id(id):
             ({"_id": obj_id}, {"metadata.oai_dc:dc.dc:description": 1})
         )
         if article:
-            return jsonify(article), 200
+            return return_pretty_json_from_bson(article)
         else:
             return jsonify({"error": "Article not found"}), 404
 
@@ -135,9 +129,12 @@ def insert_doc_from_user():
         def insert_article_transaction(db):
             result = db.arxiv_data_doc.insert_one(new_article)
             inserted_id = str(result.inserted_id)
-            return jsonify(
-                {"message": "Article inserted successfully", "id": inserted_id}
-            ), 201
+            return (
+                jsonify(
+                    {"message": "Article inserted successfully", "id": inserted_id}
+                ),
+                201,
+            )
 
         # Perform the transaction
         db_manager.open_connection()
