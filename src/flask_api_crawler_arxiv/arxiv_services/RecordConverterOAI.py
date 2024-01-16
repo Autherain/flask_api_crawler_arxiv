@@ -1,6 +1,8 @@
 import xmltodict
 import logging
 
+from flask_api_crawler_arxiv.utils.setup_logging import setup_logging
+
 
 class RecordConverterOAI:
     def __init__(self) -> None:
@@ -9,7 +11,9 @@ class RecordConverterOAI:
 
         This class is designed to convert XML data from OAI-PMH responses to dictionaries.
         """
-        self._logger = logging.Logger(__name__)
+        setup_logging()
+
+        self._logger = logging.getLogger(__name__)
 
     def xmltodict(self, xml_input: str) -> [dict]:
         """

@@ -3,6 +3,8 @@ from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
 from flask_api_crawler_arxiv.arxiv_services.RecordConverterOAI import RecordConverterOAI
 from flask_api_crawler_arxiv.arxiv_services.ListRecordOAI import ListRecordOAI
 from flask_api_crawler_arxiv.app_config_dict import app_config
+from flask_api_crawler_arxiv.utils.setup_logging import setup_logging
+
 import os
 import sys
 from datetime import date
@@ -13,25 +15,23 @@ from datetime import date
 # sys.path.append(project_root_path)
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(module)s:%(lineno)d - %(message)s",
-)
-
-
 def cron_inject_data_mongodb():
     """
     This function retrieves data from the ArXiv API, converts it, and inserts it into MongoDB.
     Function only used with cron and this is why there is an sys.path.append inside the script.
     """
-    logging.info("### Creating SERVICES ###")
+
+    setup_logging()
+    logger = logging.getLogger(__name__)
+
+    logger.info("### Creating SERVICES ###")
     arxiv_list_record_service = ListRecordOAI(app_config)
     arxiv_record_converter_service = RecordConverterOAI()
 
-    logging.info("Retrieving all data from arxiv")
+    logger.info("Retrieving all data from arxiv")
     xml_string_of_today_from_arxiv = arxiv_list_record_service.get_record(date.today())
 
-    logging.info("Converting XML string into dictionnary")
+    logger.info("Converting XML string into dictionnary")
     dict_of_today_from_arxiv = arxiv_record_converter_service.get_listrecord_dict(
         xml_string_of_today_from_arxiv
     )
@@ -42,18 +42,18 @@ def cron_inject_data_mongodb():
         f'{app_config["MONGO_INITDB_DATABASE"]}',
     )
 
-    logging.info("Attempting OPEN MongoDB connection")
+    logger.info("Attempting OPEN MongoDB connection")
     manager.open_connection()
-    logging.info("MongoDB OPEN connection successfull")
+    logger.info("MongoDB OPEN connection successfull")
 
     manager.perform_transaction(
         lambda db: db.arxiv_data_doc.insert_many(dict_of_today_from_arxiv)
     )
-    logging.info("MongoDB TRANSACTION successfull")
+    logger.info("MongoDB TRANSACTION successfull")
 
-    logging.info("Attempting CLOSED MongoDB connection")
+    logger.info("Attempting CLOSED MongoDB connection")
     manager.close_connection()
-    logging.info("MongoDB CLOSED connection successfull")
+    logger.info("MongoDB CLOSED connection successfull")
 
 
 if __name__ == "__main__":

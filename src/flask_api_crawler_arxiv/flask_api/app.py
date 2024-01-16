@@ -1,4 +1,5 @@
 import os
+import logging
 
 from bson import json_util
 from bson.objectid import ObjectId
@@ -8,6 +9,12 @@ from flask import Flask, jsonify, request, Response
 
 from flask_api_crawler_arxiv.app_config_dict import app_config
 from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
+
+from flask_api_crawler_arxiv.utils.setup_logging import setup_logging
+
+setup_logging()
+
+logger = logging.getLogger(__name__)
 
 application = Flask(__name__)
 
@@ -49,9 +56,11 @@ def get_articles():
         response = db_manager.perform_transaction(get_all_articles_transaction)
         db_manager.close_connection()
 
+        logger.info(" Retrieved articles successfully")
         return response
 
     except Exception as e:
+        logging.error(f"Error retrieving articles: {e}")
         return {"error": str(e)}, 500
 
 
@@ -61,6 +70,7 @@ def get_article_by_id(id):
         # Convert the provided ID to ObjectId
         obj_id = ObjectId(id)
     except Exception:
+        logging.error("error" "Invalid ObjectId format")
         return jsonify({"error": "Invalid ObjectId format"}), 400
 
     # Define the transaction operation to retrieve the document by ObjectId
@@ -69,6 +79,7 @@ def get_article_by_id(id):
         if article:
             return return_pretty_json_from_bson(article)
         else:
+            logging.error("error Article not found")
             return jsonify({"error": "Article not found"}), 404
 
     # Perform the transaction
@@ -80,6 +91,7 @@ def get_article_by_id(id):
         return response
 
     except Exception as e:
+        logging.info(f"error {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -89,6 +101,7 @@ def get_article_summary_by_id(id):
         # Convert the provided ID to ObjectId
         obj_id = ObjectId(id)
     except Exception:
+        logging.error("error Invalid ObjectId format")
         return jsonify({"error": "Invalid ObjectId format"}), 400
 
     # Define the transaction operation to retrieve the document by ObjectId
@@ -97,8 +110,10 @@ def get_article_summary_by_id(id):
             ({"_id": obj_id}, {"metadata.oai_dc:dc.dc:description": 1})
         )
         if article:
+            logging.info("Id was successfully found")
             return return_pretty_json_from_bson(article)
         else:
+            logging.info("error Article not found")
             return jsonify({"error": "Article not found"}), 404
 
     # Perform the transaction
@@ -110,6 +125,7 @@ def get_article_summary_by_id(id):
         return response
 
     except Exception as e:
+        logging.error(f"error {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -123,12 +139,14 @@ def insert_doc_from_user():
         if not new_article or not all(
             key in new_article for key in ["header", "metadata"]
         ):
+            logging.error("error Invalid or incomplete document")
             return jsonify({"error": "Invalid or incomplete document"}), 400
 
         # Define the transaction operation to insert the document into MongoDB
         def insert_article_transaction(db):
             result = db.arxiv_data_doc.insert_one(new_article)
             inserted_id = str(result.inserted_id)
+            logging.info("Article inserted successfully")
             return (
                 jsonify(
                     {"message": "Article inserted successfully", "id": inserted_id}
@@ -144,6 +162,7 @@ def insert_doc_from_user():
         return response
 
     except Exception as e:
+        logging.error(f"error {e}")
         return jsonify({"error": str(e)}), 500
 
 

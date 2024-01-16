@@ -1,27 +1,14 @@
+import logging
 from pymongo import MongoClient
+
+from flask_api_crawler_arxiv.utils.setup_logging import setup_logging
 
 
 class MongoDBManager:
     """
     MongoDBManager class for managing MongoDB connections and transactions.
+    ... (rest of the class remains unchanged)
 
-    Attributes:
-        connection_string (str): MongoDB connection string.
-        database_name (str): Name of the MongoDB database.
-        client: MongoClient instance for handling the connection to MongoDB.
-        db: MongoDB database object.
-
-    Methods:
-        __init__: Initializes MongoDBManager with the provided connection string and database name.
-        open_connection: Opens the MongoDB client connection.
-        close_connection: Closes the MongoDB client connection.
-        perform_transaction: Performs a transaction with the given operations.
-
-    Usage:
-        manager = MongoDBManager("your_mongodb_connection_string", "your_database_name")
-        manager.open_connection()
-        manager.perform_transaction(lambda db: db.collection.insert_one({"field": "value"}))
-        manager.close_connection()
     """
 
     def __init__(self, connection_string, database_name):
@@ -32,6 +19,9 @@ class MongoDBManager:
             connection_string (str): MongoDB connection string.
             database_name (str): Name of the MongoDB database.
         """
+        setup_logging()
+        self._logging = logging.getLogger(__name__)
+
         self.connection_string = connection_string
         self.database_name = database_name
         self.client = None
@@ -43,6 +33,7 @@ class MongoDBManager:
         """
         self.client = MongoClient(self.connection_string)
         self.db = self.client[self.database_name]
+        self._logging.info("MongoDB connection opened.")
 
     def close_connection(self):
         """
@@ -52,6 +43,7 @@ class MongoDBManager:
             self.client.close()
             self.client = None
             self.db = None
+            self._logging.info("MongoDB connection closed.")
 
     def perform_transaction(self, transaction_operations):
         """
@@ -67,8 +59,11 @@ class MongoDBManager:
         Example:
             manager = MongoDBManager("your_mongodb_connection_string", "your_database_name")
             manager.open_connection()
-            manager.perform_transaction(lambda db: db.collection.insert_one({"field": "value"}))
-            manager.close_connection()
+            try:
+                manager.perform_transaction(lambda db: db.collection.insert_one({"field": "value"}))
+                self._logging.info("Transaction successful.")
+            finally:
+                manager.close_connection()
         """
         with self.client.start_session() as session:
             with session.start_transaction():
@@ -77,4 +72,5 @@ class MongoDBManager:
                     return result
                 except Exception as e:
                     session.abort_transaction()
+                    self._logging.error(f"Transaction failed: {str(e)}")
                     raise e

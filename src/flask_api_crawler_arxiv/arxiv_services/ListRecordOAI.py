@@ -3,6 +3,8 @@ import logging
 import datetime
 import requests
 
+from flask_api_crawler_arxiv.utils.setup_logging import setup_logging
+
 
 class _ListRecordOAIParametersInit(BaseModel):
     """
@@ -85,10 +87,14 @@ class ListRecordOAI:
         Parameters:
         - app_config_dict (dict): Dictionary containing configuration parameters.
         """
-        self._logger = logging.Logger(__name__)
+
+        setup_logging()
+
+        self._logger = logging.getLogger(__name__)
 
         try:
             self._parameters = _ListRecordOAIParametersInit(**app_config_dict)
+            self._logger.info("Config dictionnary successfully loaded")
         except ValidationError as e:
             self._logger.fatal("RecordFetcher was not able to be initialized :%s", e)
             raise ValidationError() from e
@@ -159,5 +165,6 @@ class ListRecordOAI:
         if until_date is None:
             until_date = datetime.date(year=2000, month=1, day=1)
 
+        self._logger.info(f"Date used is {until_date}")
         query_parameter = self._build_parameters_query(until_date)
         return self._list_record(query_parameter)
