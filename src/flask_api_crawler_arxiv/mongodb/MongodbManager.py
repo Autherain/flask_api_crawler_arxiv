@@ -73,7 +73,8 @@ class MongoDBManager:
         with self.client.start_session() as session:
             with session.start_transaction():
                 try:
-                    transaction_operations(self.db)
+                    result = transaction_operations(self.db)
+                    return result
                 except Exception as e:
                     session.abort_transaction()
                     raise e

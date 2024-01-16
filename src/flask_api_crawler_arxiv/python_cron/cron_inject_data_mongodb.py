@@ -1,18 +1,17 @@
+import logging
+from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
+from flask_api_crawler_arxiv.arxiv_services.RecordConverterOAI import RecordConverterOAI
+from flask_api_crawler_arxiv.arxiv_services.ListRecordOAI import ListRecordOAI
+from flask_api_crawler_arxiv.app_config_dict import app_config
 import os
 import sys
 from datetime import date
 
-# Add the path to the modules directory (going up two levels). It will enable not to meddle with path when invoking this script with cron.
-current_script_path = os.path.dirname(os.path.abspath(__file__))
-project_root_path = os.path.abspath(os.path.join(current_script_path, "..", ".."))
-sys.path.append(project_root_path)
+# # Add the path to the modules directory (going up two levels). It will enable not to meddle with path when invoking this script with cron.
+# current_script_path = os.path.dirname(os.path.abspath(__file__))
+# project_root_path = os.path.abspath(os.path.join(current_script_path, "..", ".."))
+# sys.path.append(project_root_path)
 
-from flask_api_crawler_arxiv.app_config_dict import app_config
-from flask_api_crawler_arxiv.arxiv_services.ListRecordOAI import ListRecordOAI
-from flask_api_crawler_arxiv.arxiv_services.RecordConverterOAI import RecordConverterOAI
-from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
-
-import logging
 
 logging.basicConfig(
     level=logging.INFO,

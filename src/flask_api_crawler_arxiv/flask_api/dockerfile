@@ -1,0 +1,22 @@
+FROM python:3.9-alpine
+
+LABEL MAINTAINER="Etienne VANEECLOO <etienne.vaneecloo@student-cs.com>"
+
+ENV GROUP_ID=1000 \
+  USER_ID=1000 \
+  PYTHONPATH=/app 
+
+WORKDIR /app
+
+COPY . /app/flask_api_crawler_arxiv
+
+RUN pip install -r /app/flask_api_crawler_arxiv/requirements.txt && \
+  pip install gunicorn && \
+  addgroup -g $GROUP_ID www && \
+  adduser -D -u $USER_ID -G www www -s /bin/sh
+
+USER www
+
+EXPOSE 5000
+# CMD ["tail","-f","/dev/null"]
+CMD ["gunicorn","-w", "4", "--bind", "0.0.0.0:5000", "--chdir", "/app/flask_api_crawler_arxiv/flask_api", "wsgi:application"]

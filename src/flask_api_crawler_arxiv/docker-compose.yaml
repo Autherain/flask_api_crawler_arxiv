@@ -1,4 +1,3 @@
-
 version: '3'
 services:
   # MongoDB Service
@@ -11,8 +10,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}  # MongoDB root username
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}  # MongoDB root password
       MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}  # Initial MongoDB database
-    ports:
-      - ${MONGO_DOCKER_PORT}:${MONGO_HOST_PORT}  # Map container port to host port
+    # ports:
+    #   - ${MONGO_DOCKER_PORT}:${MONGO_HOST_PORT}  # Map container port to host port
     volumes:
       - mongodbdata:/data/db  # Mount volume for MongoDB data persistence
     networks:
@@ -29,8 +28,6 @@ services:
     tty: true         # Allocate a pseudo-TTY (docker run -t)
     environment:
       - TZ=UTC  # Set container timezone to UTC
-    ports:
-      - "6000:6000"  # Map container port to host port
     networks:
       - backend  # Connect to the backend network
     depends_on:
@@ -43,12 +40,64 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  webserver:
+    build:
+      context: ./
+      dockerfile: nginx/Dockerfile
+    container_name: webserver
+    restart: unless-stopped
+    environment:
+      APP_ENV: "prod"
+      APP_NAME: "webserver"
+      APP_DEBUG: "true"
+      SERVICE_NAME: "webserver"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - nginxdata:/var/log/nginx
+    depends_on:
+      - flask
+    networks:
+      - frontend
+
+  flask:
+    build:
+      context: ./ 
+      dockerfile: flask_api/Dockerfile
+    container_name: flask
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV} 
+      APP_DEBUG: ${APP_DEBUG}
+      APP_PORT: ${APP_PORT}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}  # MongoDB root username
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}  # MongoDB root password
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}  # Initial MongoDB database
+    ports:
+      - 5000:5000 
+    volumes:
+      - appdata:/var/www
+    depends_on:
+      - mongodb
+    networks:
+      - frontend
+      - backend
+
+
 networks:
+  frontend:
+    driver: bridge
   backend:
-    driver: bridge  # Define a custom network named 'backend' with the bridge driver
+    driver: bridge
 
 volumes:
   mongodbdata:
     driver: local  # Define a local volume named 'mongodbdata'
   cronlog:
     driver: local  # Define a local volume named 'cronlog'
+  appdata:
+    driver: local
+  nginxdata:
+    driver: local
+
