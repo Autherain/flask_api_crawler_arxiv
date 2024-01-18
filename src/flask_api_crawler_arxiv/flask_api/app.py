@@ -25,6 +25,15 @@ db_manager = MongoDBManager(
 
 
 def return_pretty_json_from_bson(bson_data):
+    """
+    Serialize MongoDB objects to JSON format with proper indentation and headers.
+
+    Args:
+        bson_data: MongoDB data to be serialized.
+
+    Returns:
+        Response: Flask Response object containing formatted JSON data with appropriate headers.
+    """
     # Use json_util to serialize MongoDB objects
     articles_list = json_util.dumps(bson_data, indent=4)
     # Set the response headers for JSON content
@@ -36,6 +45,12 @@ def return_pretty_json_from_bson(bson_data):
 
 @application.route("/articles/", methods=["GET"])
 def get_articles():
+    """
+    Endpoint to retrieve paginated articles.
+
+    Returns:
+        Response: Paginated articles in JSON format.
+    """
     # Set a fixed per_page value
     per_page = 50  # Maximum entities per page
 
@@ -66,6 +81,15 @@ def get_articles():
 
 @application.route("/article/<id>", methods=["GET"])
 def get_article_by_id(id):
+    """
+    Endpoint to retrieve an article by its ID.
+
+    Args:
+        id (str): ObjectId of the article.
+
+    Returns:
+        Response: Article details in JSON format.
+    """
     try:
         # Convert the provided ID to ObjectId
         obj_id = ObjectId(id)
@@ -97,6 +121,15 @@ def get_article_by_id(id):
 
 @application.route("/text/<id>.txt", methods=["GET"])
 def get_article_summary_by_id(id):
+    """
+    Endpoint to retrieve the summary of an article by its ID.
+
+    Args:
+        id (str): ObjectId of the article.
+
+    Returns:
+        Response: Article summary in JSON format.
+    """
     try:
         # Convert the provided ID to ObjectId
         obj_id = ObjectId(id)
@@ -131,6 +164,12 @@ def get_article_summary_by_id(id):
 
 @application.route("/articles", methods=["POST"])
 def insert_doc_from_user():
+    """
+    Endpoint to insert a new document from the user.
+
+    Returns:
+        Response: Success or error message in JSON format.
+    """
     try:
         # Get the JSON document from the request body
         new_article = request.get_json()
