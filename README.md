@@ -1,6 +1,8 @@
 # arXviv API
 
-![Alt Text](umadbra.gif)
+<div style="text-align:center">
+  <img src="umadbra.gif" alt="Alt Text">
+</div>
 
 ## About the project
 
@@ -25,7 +27,10 @@ The API is made with flask. The API gateway is made with nginx to only communica
 
 ## Architecture
 
-<img src="diagram.png" alt="image" width="90%" height="auto">
+<div style="text-align:center">
+  <img src="diagram.png" alt="image" width="50%" height="auto">
+</div>
+
 
 This project showcases a comprehensive Dockerized environment for running a web application stack. It includes services for MongoDB, a Python Cron job, a web server with NGINX, and a Flask API. The configuration is orchestrated using Docker Compose, making it easy to deploy and manage.
 
