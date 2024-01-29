@@ -110,6 +110,8 @@ Supported attributes:
 | `page`        | int  | No       | Page number for pagination (default is 1). |
 | `description` | str  | No       | String to be found inside the description. |
 | `title`       | str  | No       | Title to be found.                         |
+| `start_date`  | str  | No       | Start date.                                |
+| `end_date`    | str  | No       | End date.                                  |
 
 #### Success
 
