@@ -265,7 +265,7 @@ Returns `200 OK` and the article summary in JSON format.
 Example request:
 
 ```shell
-curl --url "http://localhost:80/text/0802.3300.txt"
+curl --url "http://localhost:80/text/<id of an article>.txt"
 ```
 
 Example response:
