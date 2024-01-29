@@ -6,7 +6,7 @@
 
 ## About the project
 
-The arXviv API project is a comprehensive web application that serves as an interface for retrieving and managing academic articles from ArXiv, a repository of scholarly articles in the field of computer science. 
+The arXviv API project is a comprehensive web application that serves as an interface for retrieving and managing academic articles from ArXiv, a repository of scholarly articles in the field of computer science.
 
 Each day at 23:00 (11 pm), a cron will activate to retrieve 100 articles from the OpenArchive Initiative to store it inside the mongo database. 100 articles is the limit imposed by ARxiv.
 
@@ -21,16 +21,15 @@ The API is made with flask. The API gateway is made with nginx to only communica
 - Python
 - Flask
 
-| Linter | Code Formatting | Code coverage |
-| --- | --- | --- | 
-| `Pylint` | `black` | `pytest-cov`|
+| Linter   | Code Formatting | Code coverage |
+| -------- | --------------- | ------------- |
+| `Pylint` | `black`         | `pytest-cov`  |
 
 ## Architecture
 
 <div style="text-align:center">
   <img src="diagram.png" alt="image" width="50%" height="auto">
 </div>
-
 
 This project showcases a comprehensive Dockerized environment for running a web application stack. It includes services for MongoDB, a Python Cron job, a web server with NGINX, and a Flask API. The configuration is orchestrated using Docker Compose, making it easy to deploy and manage.
 
@@ -40,7 +39,7 @@ The MongoDB service runs the MongoDB database with authentication enabled. It us
 
 #### Python Cron Service
 
-The Python Cron service is responsible for scheduled tasks and jobs. It utilizes a Docker image built from the provided Dockerfile. The service is configured with UTC timezone and logs are maintained in a separate volume. It depends on the MongoDB service and is connected to the backend network. The code used is the same as the entire project. The cron will only inject data from the "cs" arxset. 
+The Python Cron service is responsible for scheduled tasks and jobs. It utilizes a Docker image built from the provided Dockerfile. The service is configured with UTC timezone and logs are maintained in a separate volume. It depends on the MongoDB service and is connected to the backend network. The code used is the same as the entire project. The cron will only inject data from the "cs" arxset.
 
 #### Web Server with NGINX
 
@@ -54,10 +53,10 @@ The Flask API service provides the core application functionality. It is built f
 
 ## Installation
 
-1. Clone the repo
+0. Clone the repo
 
 ```sh
-https://gitlab-student.centralesupelec.fr/etienne.vaneecloo/flask_api_crawler_arxiv.git
+git clone https://gitlab-student.centralesupelec.fr/etienne.vaneecloo/flask_api_crawler_arxiv.git
 ```
 
 2. Go to docker compose
@@ -66,7 +65,7 @@ https://gitlab-student.centralesupelec.fr/etienne.vaneecloo/flask_api_crawler_ar
 cd flask_api_crawler_arxiv/src/flask_api_crawler_arxiv
 ```
 
-3. Spin it up 
+3. Spin it up
 
 ```
 docker compose build && docker compose up
@@ -77,6 +76,14 @@ docker compose build && docker compose up
 ```
 curl http://localhost:80/health
 ```
+
+5. Populate the database
+
+```
+curl http://localhost:80/inject_data_to_mongodb
+```
+
+6. You know ready to work with API !!
 
 # API Documentation
 
@@ -180,9 +187,10 @@ Supported attributes:
 Returns `200 OK` and the article details in JSON format.
 
 Example request:
+To get the id of an article, simply use one found when populating the databse.
 
 ```shell
-curl --url "http://localhost:80/article/0802.3300"
+curl --url "http://localhost:80/article/<id of an article>"
 ```
 
 Example response:
@@ -335,21 +343,24 @@ Returns `400 Bad Request` with an error message if the request body is invalid.
 Returns `500 Internal Server Error` with an error message in case of other failures.
 
 ---
+
 ## Inject Data to MongoDB
 
 > Version 1.0
 
-This endpoint is responsible for injecting data into MongoDB based on the specified ARXSET parameter.
+This endpoint is responsible for injecting data into MongoDB based on the specified ARXSET parameter. It will gather the article at the date of today.
 
 ### Method
+
 ```plaintext
 GET /inject_data_to_mongodb
 ```
+
 Supported query parameters:
 
-| Parameter | Type   | Required | Description                                     |
-| --------- | ------ | -------- | ----------------------------------------------- |
-| `ARXSET`  | string | No       | The ARXSET parameter specifying the data to be injected. |
+| Parameter | Type   | Required | Description                                                                                                                  |
+| --------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `ARXSET`  | string | No       | The ARXSET parameter specifying the data to be injected. If nothing is specified then the API will extract from "cs" arxset. |
 
 #### Success
 
@@ -359,8 +370,10 @@ Example request:
 ```shell
 curl --url "http://localhost:80/inject_data_to_mongodb?ARXSET=my_arxset"
 ```
+
 Example response:
- ```json
+
+```json
 {
   "message": "Data injection completed successfully."
 }
@@ -373,8 +386,8 @@ Returns 500 Internal Server Error with an error message in case of failure.
 {
   "error": "Error during data injection: [Error Message]"
 }
-
 ```
+
 ---
 
 ## Get Current Server Time
@@ -525,7 +538,6 @@ Example response:
 ```
 ASCI ART
 ```
-
 
 ## Acknowledgments
 
