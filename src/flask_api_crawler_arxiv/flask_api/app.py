@@ -61,10 +61,29 @@ def get_articles():
     # Get the page number from the URL or default to 1
     page = int(request.args.get("page", 1))
 
-    # Define the transaction operation to retrieve all articles with pagination
-    def get_all_articles_transaction(db):
+    # Extract query parameters for filtering
+    description = request.args.get("description")
+    title = request.args.get("title")
+
+    # Define the transaction operation to retrieve filtered and paginated articles
+    def get_filtered_articles_transaction(db):
+        query = {}
+
+        # Apply filters based on criteria
+        if description:
+            query["metadata.oai_dc:dc.dc:description"] = {
+                "$regex": f".*{description}.*",
+                "$options": "i",
+            }
+
+        if title:
+            query["metadata.oai_dc:dc.dc:title"] = {
+                "$regex": f".*{title}.*",
+                "$options": "i",
+            }
+
         articles_cursor = (
-            db.arxiv_data_doc.find().skip((page - 1) * per_page).limit(per_page)
+            db.arxiv_data_doc.find(query).skip((page - 1) * per_page).limit(per_page)
         )
 
         return return_pretty_json_from_bson(articles_cursor)
@@ -72,10 +91,10 @@ def get_articles():
     # Perform the transaction
     try:
         db_manager.open_connection()
-        response = db_manager.perform_transaction(get_all_articles_transaction)
+        response = db_manager.perform_transaction(get_filtered_articles_transaction)
         db_manager.close_connection()
 
-        logger.info(" Retrieved articles successfully")
+        logger.info(" Retrieved filtered articles successfully")
         return response
 
     except Exception as e:
@@ -132,7 +151,7 @@ def inject_data_to_mongodb():
         None
 
     Query Parameters:
-        ARXSET (optional): The ARXSET parameter specifying the data to be injected.
+        ARXSET (optional): The ARXSET parameter specifying the data to be injected. If nothing is specified then the API will extract from "cs" arxset.
 
     Returns:
         Response: Success or error message in JSON format.
@@ -142,7 +161,7 @@ def inject_data_to_mongodb():
     """
     try:
         arxset = request.args.get(
-            "ARXSET", default=None
+            "ARXSET", default="cs"
         )  # Get ARXSET from query parameters with default value None
 
         cron_inject_data_mongodb(app_config, arxset=arxset)
