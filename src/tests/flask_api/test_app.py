@@ -4,6 +4,8 @@ from unittest.mock import patch, MagicMock
 from flask_api_crawler_arxiv.flask_api.app import application, db_manager
 from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
 
+from flask_api_crawler_arxiv.app_config_dict import app_config
+
 # Fixture to override the MongoDBManager during tests
 
 
@@ -24,8 +26,6 @@ def client():
 
 
 # Sample test for the get_articles endpoint
-
-
 def test_get_articles(client, mock_db_manager):
     # Mock the perform_transaction method to return a sample list of articles
     mock_db_manager.perform_transaction.return_value = (
@@ -161,3 +161,19 @@ def test_get_article_summary_by_id_error_handling(client, mock_db_manager):
     # Assert the response status code and error message
     assert response.status_code == 500
     assert b"Sample error" in response.data
+
+
+def test_inject_data_to_mongodb(client, mock_db_manager):
+    # Mock the cron_inject_data_mongodb function
+    with patch(
+        "flask_api_crawler_arxiv.flask_api.app.cron_inject_data_mongodb"
+    ) as mock_cron:
+        # Send a GET request to the /inject_data_to_mongodb endpoint
+        response = client.get("/inject_data_to_mongodb?ARXSET=test_arxset")
+
+        # Assert the response status code and success message
+        assert response.status_code == 200
+        assert b"Data injection completed successfully." in response.data
+
+        # Assert that the cron_inject_data_mongodb function was called with the correct arguments
+        mock_cron.assert_called_once_with(app_config, arxset="test_arxset")

@@ -10,6 +10,10 @@ from flask import Flask, jsonify, request, Response
 from flask_api_crawler_arxiv.app_config_dict import app_config
 from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
 
+from flask_api_crawler_arxiv.python_cron.cron_inject_data_mongodb import (
+    cron_inject_data_mongodb,
+)
+
 from flask_api_crawler_arxiv.utils.setup_logging import setup_logging
 
 setup_logging()
@@ -117,6 +121,36 @@ def get_article_by_id(id):
     except Exception as e:
         logging.info(f"error {e}")
         return jsonify({"error": str(e)}), 500
+
+
+@application.route("/inject_data_to_mongodb", methods=["GET"])
+def inject_data_to_mongodb():
+    """
+    This route is responsible for injecting data into MongoDB based on the specified ARXSET parameter.
+
+    Args:
+        None
+
+    Query Parameters:
+        ARXSET (optional): The ARXSET parameter specifying the data to be injected.
+
+    Returns:
+        Response: Success or error message in JSON format.
+
+    Raises:
+        None, as the caught exception is logged and returned as part of the response.
+    """
+    try:
+        arxset = request.args.get(
+            "ARXSET", default=None
+        )  # Get ARXSET from query parameters with default value None
+
+        cron_inject_data_mongodb(app_config, arxset=arxset)
+        return jsonify({"message": "Data injection completed successfully."})
+    except Exception as e:
+        error_message = f"Error during data injection: {str(e)}"
+        logger.error(error_message)
+        return jsonify({"error": error_message}), 500  # 500 Internal Server Error
 
 
 @application.route("/text/<id>.txt", methods=["GET"])

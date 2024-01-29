@@ -40,7 +40,7 @@ The MongoDB service runs the MongoDB database with authentication enabled. It us
 
 #### Python Cron Service
 
-The Python Cron service is responsible for scheduled tasks and jobs. It utilizes a Docker image built from the provided Dockerfile. The service is configured with UTC timezone and logs are maintained in a separate volume. It depends on the MongoDB service and is connected to the backend network. The code used is the same as the entire project.
+The Python Cron service is responsible for scheduled tasks and jobs. It utilizes a Docker image built from the provided Dockerfile. The service is configured with UTC timezone and logs are maintained in a separate volume. It depends on the MongoDB service and is connected to the backend network. The code used is the same as the entire project. The cron will only inject data from the "cs" arxset. 
 
 #### Web Server with NGINX
 
@@ -109,7 +109,7 @@ Returns `200 OK` and the paginated articles in JSON format.
 Example request:
 
 ```shell
-curl --url "http://localhost/api/v1/articles/?page=1"
+curl --url "http://localhost:80/articles/?page=1"
 ```
 
 Example response:
@@ -182,7 +182,7 @@ Returns `200 OK` and the article details in JSON format.
 Example request:
 
 ```shell
-curl --url "http://localhost/api/v1/article/0802.3300"
+curl --url "http://localhost:80/article/0802.3300"
 ```
 
 Example response:
@@ -253,7 +253,7 @@ Returns `200 OK` and the article summary in JSON format.
 Example request:
 
 ```shell
-curl --url "http://localhost/api/v1/text/0802.3300.txt"
+curl --url "http://localhost:80/text/0802.3300.txt"
 ```
 
 Example response:
@@ -335,6 +335,47 @@ Returns `400 Bad Request` with an error message if the request body is invalid.
 Returns `500 Internal Server Error` with an error message in case of other failures.
 
 ---
+## Inject Data to MongoDB
+
+> Version 1.0
+
+This endpoint is responsible for injecting data into MongoDB based on the specified ARXSET parameter.
+
+### Method
+```plaintext
+GET /inject_data_to_mongodb
+```
+Supported query parameters:
+
+| Parameter | Type   | Required | Description                                     |
+| --------- | ------ | -------- | ----------------------------------------------- |
+| `ARXSET`  | string | No       | The ARXSET parameter specifying the data to be injected. |
+
+#### Success
+
+Returns `200 OK` and a success message in JSON format.
+Example request:
+
+```shell
+curl --url "http://localhost:80/inject_data_to_mongodb?ARXSET=my_arxset"
+```
+Example response:
+ ```json
+{
+  "message": "Data injection completed successfully."
+}
+```
+
+Failure
+Returns 500 Internal Server Error with an error message in case of failure.
+
+```json
+{
+  "error": "Error during data injection: [Error Message]"
+}
+
+```
+---
 
 ## Get Current Server Time
 
@@ -355,7 +396,7 @@ Returns `200 OK` and the current server time.
 Example request:
 
 ```shell
-curl --url "http://localhost/api/v1/time"
+curl --url "http://localhost:80/time"
 ```
 
 Example response:
@@ -385,7 +426,7 @@ Returns `200 OK` with the message "OK".
 Example request:
 
 ```shell
-curl --url "http://localhost/api/v1/health"
+curl --url "http://localhost:80/health"
 ```
 
 Example response:
@@ -415,7 +456,7 @@ Returns `200 OK` with the welcome message.
 Example request:
 
 ```shell
-curl --url "http://localhost/api/v1/"
+curl --url "http://localhost:80/"
 ```
 
 Example response:
@@ -445,7 +486,7 @@ Returns `200 OK` and the version information.
 Example request:
 
 ```shell
-curl --url "http://localhost/api/v1/version"
+curl --url "http://localhost:80/version"
 ```
 
 Example response:
@@ -476,7 +517,7 @@ Returns `200 OK` with ASCII art.
 Example request:
 
 ```shell
-curl --url "http://localhost/api/v1/umad_bra"
+curl --url "http://localhost:80/umad_bra"
 ```
 
 Example response:

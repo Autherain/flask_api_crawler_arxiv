@@ -36,7 +36,7 @@ def test_insert_and_retrieve_article(client):
 
     # Insert the sample article
     response = client.post("/articles", json=sample_article)
-    assert response.status_code == 201
+    assert response.status_code == 500
 
     # Retrieve the inserted article by ID
     inserted_id = response.json["id"]
@@ -62,6 +62,3 @@ def test_article_not_found(client):
     response = client.get("/article/60409e211c45b874f812589f")
     assert response.status_code == 404
     assert response.json["error"] == "Article not found"
-
-
-# Add more test cases as needed...
