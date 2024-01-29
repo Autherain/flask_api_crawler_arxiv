@@ -64,6 +64,14 @@ def get_articles():
     # Extract query parameters for filtering
     description = request.args.get("description")
     title = request.args.get("title")
+    start_date_str = request.args.get("start_date")
+    end_date_str = request.args.get("end_date")
+
+    # Parse start_date and end_date if provided
+    start_date = (
+        datetime.strptime(start_date_str, "%Y-%m-%d") if start_date_str else None
+    )
+    end_date = datetime.strptime(end_date_str, "%Y-%m-%d") if end_date_str else None
 
     # Define the transaction operation to retrieve filtered and paginated articles
     def get_filtered_articles_transaction(db):
@@ -80,6 +88,12 @@ def get_articles():
             query["metadata.oai_dc:dc.dc:title"] = {
                 "$regex": f".*{title}.*",
                 "$options": "i",
+            }
+
+        if start_date and end_date:
+            query["header.datestamp"] = {
+                "$gte": start_date,
+                "$lte": end_date,
             }
 
         articles_cursor = (

@@ -105,9 +105,11 @@ GET /articles/
 
 Supported attributes:
 
-| Attribute | Type | Required | Description                                |
-| --------- | ---- | -------- | ------------------------------------------ |
-| `page`    | int  | No       | Page number for pagination (default is 1). |
+| Attribute     | Type | Required | Description                                |
+| ------------- | ---- | -------- | ------------------------------------------ |
+| `page`        | int  | No       | Page number for pagination (default is 1). |
+| `description` | str  | No       | String to be found inside the description. |
+| `title`       | str  | No       | Title to be found.                         |
 
 #### Success
 

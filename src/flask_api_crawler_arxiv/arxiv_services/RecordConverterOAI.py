@@ -1,6 +1,8 @@
 import xmltodict
 import logging
 
+from datetime import datetime
+
 from flask_api_crawler_arxiv.utils.setup_logging import setup_logging
 
 
@@ -54,4 +56,21 @@ class RecordConverterOAI:
             [dict]: List containing the resulting dictionary.
         """
         listrecord_dict = self.xmltodict(xml_source)
-        return listrecord_dict["OAI-PMH"]["ListRecords"]["record"]
+
+        records = (
+            listrecord_dict.get("OAI-PMH", {}).get("ListRecords", {}).get("record", [])
+        )
+
+        converted_records = []
+        for item in records:
+            try:
+                item["header"]["datestamp"] = datetime.strptime(
+                    item["header"]["datestamp"], "%Y-%m-%d"
+                )
+                converted_records.append(item)
+            except (KeyError, ValueError) as e:
+                self._logger.warning(
+                    "Error converting record: %s. Removing the record.", e
+                )
+
+        return converted_records
