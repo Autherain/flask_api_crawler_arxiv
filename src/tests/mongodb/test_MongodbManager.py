@@ -1,64 +1,96 @@
+import unittest
+from unittest.mock import MagicMock, patch
 import pytest
-from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
-from flask_api_crawler_arxiv.flask_api.app import application
-from unittest.mock import MagicMock
-from bson import ObjectId
+from flask_api_crawler_arxiv.utils.setup_logging import setup_logging
+from flask_api_crawler_arxiv.mongodb.MongodbManager import (
+    MongoDBManager,
+)  # Replace 'your_module' with the actual module name
 
 
-@pytest.fixture
-def client():
-    application.config["TESTING"] = True
-    application.config["DEBUG"] = False
+class TestMongoDBManager(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        setup_logging()
 
-    # Mock MongoDBManager
-    mongodb_manager_mock = MagicMock(spec=MongoDBManager)
-    MongoDBManager.return_value = mongodb_manager_mock
+    @pytest.fixture
+    def mongo_manager_fixture(self, request):
+        # Fixture for creating an instance of MongoDBManager with a mocked MongoClient
+        connection_string = "mocked_connection_string"
+        database_name = "mocked_database_name"
 
-    with application.test_client() as client:
-        yield client
+        # Patching MongoClient to return a MagicMock instance
+        with patch("your_module.MongoClient") as mock_mongo_client:
+            mock_client = MagicMock()
+            mock_mongo_client.return_value = mock_client
+            manager = MongoDBManager(connection_string, database_name)
+            manager.open_connection()  # Open the connection for testing
+
+            # Cleanup after the test
+            def close_connection():
+                manager.close_connection()
+
+            request.addfinalizer(close_connection)
+
+            return manager
+
+    def test_open_connection(self):
+        # Ensure open_connection() opens the connection and sets client and db attributes
+        connection_string = "mocked_connection_string"
+        database_name = "mocked_database_name"
+        manager = MongoDBManager(connection_string, database_name)
+
+        manager.open_connection()
+
+        self.assertIsNotNone(manager.client)
+        self.assertIsNotNone(manager.db)
+
+    def test_close_connection(self):
+        # Ensure close_connection() closes the connection and sets client and db to None
+        connection_string = "mocked_connection_string"
+        database_name = "mocked_database_name"
+        manager = MongoDBManager(connection_string, database_name)
+        manager.open_connection()
+
+        manager.close_connection()
+
+        self.assertIsNone(manager.client)
+        self.assertIsNone(manager.db)
+
+    def test_perform_transaction_success(self):
+        # Ensure perform_transaction() executes successfully
+        connection_string = "mocked_connection_string"
+        database_name = "mocked_database_name"
+        manager = MongoDBManager(connection_string, database_name)
+
+        def mock_transaction_operations(db):
+            return "Mocked result"
+
+        with patch.object(manager, "client", MagicMock()), patch.object(
+            manager, "db", MagicMock()
+        ):
+            result = manager.perform_transaction(mock_transaction_operations)
+
+        self.assertEqual(result, "Mocked result")
+
+    def test_perform_transaction_failure(self):
+        # Ensure perform_transaction() handles transaction failure
+        connection_string = "mocked_connection_string"
+        database_name = "mocked_database_name"
+        manager = MongoDBManager(connection_string, database_name)
+
+        def mock_transaction_operations(db):
+            raise Exception("Mocked transaction failure")
+
+        with patch.object(manager, "client", MagicMock()), patch.object(
+            manager, "db", MagicMock()
+        ):
+            with self.assertRaises(Exception):
+                manager.perform_transaction(mock_transaction_operations)
+
+        # Ensure the session is aborted and the connection is closed
+        self.assertIsNone(manager.client)
+        self.assertIsNone(manager.db)
 
 
-def test_insert_and_retrieve_article(client):
-    # Mock MongoDB connection
-    mongodb_manager_mock = MongoDBManager.return_value
-    mongodb_manager_mock.client = MagicMock()
-    mongodb_manager_mock.db = MagicMock()
-
-    # Define a sample article for testing
-    sample_article = {
-        "header": "Test Article",
-        "metadata": {
-            "oai_dc:dc.date": "2023-01-01",
-            "oai_dc:dc.subject": "Test Subject",
-            # ... other metadata fields ...
-        },
-    }
-
-    # Insert the sample article
-    response = client.post("/articles", json=sample_article)
-    assert response.status_code == 500
-
-    # Retrieve the inserted article by ID
-    inserted_id = response.json["id"]
-    response = client.get(f"/article/{inserted_id}")
-    assert response.status_code == 200
-    assert response.json["header"] == "Test Article"
-    assert response.json["metadata"]["oai_dc:dc.subject"] == "Test Subject"
-
-
-def test_invalid_object_id_format(client):
-    response = client.get("/article/invalid_id")
-    assert response.status_code == 400
-    assert response.json["error"] == "Invalid ObjectId format"
-
-
-def test_article_not_found(client):
-    # Mock MongoDB connection
-    mongodb_manager_mock = MongoDBManager.return_value
-    mongodb_manager_mock.client = MagicMock()
-    mongodb_manager_mock.db = MagicMock()
-
-    # Try to retrieve an article with a non-existent ID
-    response = client.get("/article/60409e211c45b874f812589f")
-    assert response.status_code == 404
-    assert response.json["error"] == "Article not found"
+if __name__ == "__main__":
+    unittest.main()

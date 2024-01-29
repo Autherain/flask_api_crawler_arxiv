@@ -1,7 +1,7 @@
 import pytest
 from flask import Flask
 from unittest.mock import patch, MagicMock
-from flask_api_crawler_arxiv.flask_api.app import application, db_manager
+from flask_api_crawler_arxiv.flask_api.app import application
 from flask_api_crawler_arxiv.mongodb.MongodbManager import MongoDBManager
 
 from flask_api_crawler_arxiv.app_config_dict import app_config
