@@ -138,6 +138,7 @@ def get_article_by_id(id):
     def get_article_transaction(db):
         article = db.arxiv_data_doc.find_one({"_id": obj_id})
         if article:
+            logging.info("Id was successfully found")
             return return_pretty_json_from_bson(article)
         else:
             logging.error("error Article not found")
@@ -186,7 +187,7 @@ def inject_data_to_mongodb():
         return jsonify({"error": error_message}), 500  # 500 Internal Server Error
 
 
-@application.route("/text/<id>.txt", methods=["GET"])
+@application.route("/text/<id>", methods=["GET"])
 def get_article_summary_by_id(id):
     """
     Endpoint to retrieve the summary of an article by its ID.
@@ -207,7 +208,7 @@ def get_article_summary_by_id(id):
     # Define the transaction operation to retrieve the document by ObjectId
     def get_article_summary_transaction(db):
         article = db.arxiv_data_doc.find_one(
-            ({"_id": obj_id}, {"metadata.oai_dc:dc.dc:description": 1})
+            {"_id": obj_id}, {"metadata.oai_dc:dc.dc:description": 1}
         )
         if article:
             logging.info("Id was successfully found")
