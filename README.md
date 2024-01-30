@@ -39,7 +39,7 @@ The MongoDB service runs the MongoDB database with authentication enabled. It us
 
 #### Python Cron Service
 
-The Python Cron service is responsible for scheduled tasks and jobs. It utilizes a Docker image built from the provided Dockerfile. The service is configured with UTC timezone and logs are maintained in a separate volume. It depends on the MongoDB service and is connected to the backend network. The code used is the same as the entire project. The cron will only inject data from the "cs" arxset.
+The Python Cron service is responsible for scheduled tasks and jobs. It utilizes a Docker image built from the provided Dockerfile. The service is configured with UTC timezone and logs are maintained in a separate volume. It depends on the MongoDB service and is connected to the backend network. The code used is the same as the entire project. The cron will only inject data from the "cs" arxset every day at 23:00 (11 pm).
 
 #### Web Server with NGINX
 
@@ -47,7 +47,7 @@ The web server service uses NGINX to serve the application. It is built from a D
 
 #### Flask API
 
-The Flask API service provides the core application functionality. It is built from a Dockerfile and configured with environment variables for various settings, including the MongoDB connection details. The service is exposed on port 5000 and depends on the MongoDB service. It is connected to both the frontend and backend networks. It uses gunicorn with 4 workers to
+The Flask API service provides the core application functionality. It is built from a Dockerfile and configured with environment variables for various settings, including the MongoDB connection details. The service depends on the MongoDB service. It is connected to both the frontend and backend networks. It uses gunicorn with 4 workers to accomodate the load. 
 
 # Getting started
 
