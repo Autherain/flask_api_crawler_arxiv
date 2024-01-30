@@ -1,0 +1,1 @@
+0 23 * * * root /usr/local/bin/python /app/flask_api_crawler_arxiv/python_cron/cron_inject_data_mongodb.py >> /var/log/cron/cron.log 2>&1

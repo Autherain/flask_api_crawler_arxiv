@@ -1,0 +1,98 @@
+version: "3"
+services:
+  # MongoDB Service
+  mongodb:
+    image: mongo:4.0.8
+    container_name: ${MONGO_CONTAINER_NAME} # Container name based on environment variable
+    restart: unless-stopped
+    command: mongod --auth # Run MongoDB with authentication
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME} # MongoDB root username
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD} # MongoDB root password
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE} # Initial MongoDB database
+    # ports:
+    #   - ${MONGO_DOCKER_PORT}:${MONGO_HOST_PORT}  # Map container port to host port
+    volumes:
+      - mongodbdata:/data/db # Mount volume for MongoDB data persistence
+    networks:
+      - backend # Connect to the backend network
+
+  # Python Cron Service
+  python_cron:
+    build:
+      context: ./
+      dockerfile: python_cron/Dockerfile
+    container_name: python-cron
+    restart: unless-stopped
+    stdin_open: true # Enable interactive mode (docker run -i)
+    tty: true # Allocate a pseudo-TTY (docker run -t)
+    environment:
+      - TZ=UTC # Set container timezone to UTC
+    networks:
+      - backend # Connect to the backend network
+    depends_on:
+      - mongodb # Depend on the MongoDB service, start after it
+    volumes:
+      - cronlog:/var/log/cron # Mount volume for cron logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  webserver:
+    build:
+      context: ./
+      dockerfile: nginx/Dockerfile
+    container_name: webserver
+    restart: unless-stopped
+    environment:
+      APP_ENV: "prod"
+      APP_NAME: "webserver"
+      APP_DEBUG: "true"
+      SERVICE_NAME: "webserver"
+    ports:
+      - "80:80"
+    volumes:
+      - nginxdata:/var/log/nginx
+    depends_on:
+      - flask
+    networks:
+      - frontend
+
+  flask:
+    build:
+      context: ./
+      dockerfile: flask_api/Dockerfile
+    container_name: flask
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_DEBUG: ${APP_DEBUG}
+      APP_PORT: ${APP_PORT}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME} # MongoDB root username
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD} # MongoDB root password
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE} # Initial MongoDB database
+    volumes:
+      - appdata:/var/www
+    depends_on:
+      - mongodb
+    networks:
+      - frontend
+      - backend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+volumes:
+  mongodbdata:
+    driver: local # Define a local volume named 'mongodbdata'
+  cronlog:
+    driver: local # Define a local volume named 'cronlog'
+  appdata:
+    driver: local
+  nginxdata:
+    driver: local
