@@ -8,7 +8,7 @@
 
 The arXviv API project is a comprehensive web application that serves as an interface for retrieving and managing academic articles from ArXiv, a repository of scholarly articles in the field of computer science.
 
-Each day at 23:00 (11 pm), a cron will activate to retrieve 100 articles from the OpenArchive Initiative to store it inside the mongo database. 100 articles is the limit imposed by ARxiv.
+Each day at 23:00 (11 pm), a cron will activate to retrieve 100 articles from the OpenArchive Initiative to store it inside the mongo database. 100 articles is the limit imposed by ARxiv. Because mongodb is used, no verification is implemented when inserting a document. 
 
 The API is made with flask. The API gateway is made with nginx to only communicate with http.
 
@@ -110,8 +110,8 @@ Supported attributes:
 | `page`        | int  | No       | Page number for pagination (default is 1). |
 | `description` | str  | No       | String to be found inside the description. |
 | `title`       | str  | No       | Title to be found.                         |
-| `start_date`  | str  | No       | Start date.                                |
-| `end_date`    | str  | No       | End date.                                  |
+| `start_date`  | str  | No       | Start date in format (%Y-%m-%d). Ex: 2007-01-30                                |
+| `end_date`    | str  | No       | End date in format (%Y-%m-%d). Ex: 2008-05-20                                  |
 
 #### Success
 
@@ -127,38 +127,50 @@ Example response:
 
 ```json
 [
-  {
-    "record": {
-      "header": {
-        "identifier": "oai:arXiv.org:0802.3300",
-        "datestamp": "2024-01-18",
-        "setSpec": "cs"
-      },
-      "metadata": {
-        "dc": {
-          "title": "Projective Expected Utility",
-          "creator": "La Mura, Pierfrancesco",
-          "subject": [
-            "Quantum Physics",
-            "Computer Science - Computer Science and Game Theory",
-            "Economics - Theoretical Economics"
-          ],
-          "description": [
-            "Motivated by several classic decision-theoretic paradoxes, and by analogies with the paradoxes which in physics motivated the development of quantum mechanics, we introduce a projective generalization of expected utility along the lines of the quantum-mechanical generalization of probability theory. The resulting decision theory accommodates the dominant paradoxes, while retaining significant simplicity and tractability. In particular, every finite game within this larger class of preferences still has an equilibrium.",
-            "Comment: 7 pages, to appear in the Proceedings of Quantum Interaction 2008"
-          ],
-          "date": "2008-02-22",
-          "type": "text",
-          "identifier": [
-            "http://arxiv.org/abs/0802.3300",
-            "J. of Math. Psychology, 53:5 (2009)",
-            "doi:10.1016/j.jmp.2009.02.001"
-          ]
+    {
+        "_id": {
+            "$oid": "65b819d631f4fc2d19769a97"
+        },
+        "header": {
+            "identifier": "oai:arXiv.org:0704.0002",
+            "datestamp": {
+                "$date": "2008-12-13T00:00:00Z"
+            },
+            "setSpec": "cs"
+        },
+        "metadata": {
+            "oai_dc:dc": {
+                "@xmlns:oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
+                "@xmlns:dc": "http://purl.org/dc/elements/1.1/",
+                "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+                "@xsi:schemaLocation": "http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
+                "dc:title": "Sparsity-certifying Graph Decompositions",
+                "dc:creator": [
+                    "Streinu, Ileana",
+                    "Theran, Louis"
+                ],
+                "dc:subject": [
+                    "Mathematics - Combinatorics",
+                    "Computer Science - Computational Geometry",
+                    "05C85",
+                    "05C70",
+                    "68R10",
+                    "05B35"
+                ],
+                "dc:description": [
+                    "We describe a new algorithm, the $(k,\\ell)$-pebble game with colors, and use\nit obtain a characterization of the family of $(k,\\ell)$-sparse graphs and\nalgorithmic solutions to a family of problems concerning tree decompositions of\ngraphs. Special instances of sparse graphs appear in rigidity theory and have\nreceived increased attention in recent years. In particular, our colored\npebbles generalize and strengthen the previous results of Lee and Streinu and\ngive a new proof of the Tutte-Nash-Williams characterization of arboricity. We\nalso present a new decomposition that certifies sparsity based on the\n$(k,\\ell)$-pebble game with colors. Our work also exposes connections between\npebble game algorithms and previous sparse graph algorithms by Gabow, Gabow and\nWestermann and Hendrickson.",
+                    "Comment: To appear in Graphs and Combinatorics"
+                ],
+                "dc:date": [
+                    "2007-03-30",
+                    "2008-12-13"
+                ],
+                "dc:type": "text",
+                "dc:identifier": "http://arxiv.org/abs/0704.0002"
+            }
         }
-      }
-    }
-  }
-  // More articles...
+    },
+    // More articles
 ]
 ```
 
@@ -201,35 +213,47 @@ Example response:
 
 ```json
 {
-  "record": {
+    "_id": {
+        "$oid": "65b819d631f4fc2d19769a97"
+    },
     "header": {
-      "identifier": "oai:arXiv.org:0802.3300",
-      "datestamp": "2024-01-18",
-      "setSpec": "cs"
+        "identifier": "oai:arXiv.org:0704.0002",
+        "datestamp": {
+            "$date": "2008-12-13T00:00:00Z"
+        },
+        "setSpec": "cs"
     },
     "metadata": {
-      "dc": {
-        "title": "Projective Expected Utility",
-        "creator": "La Mura, Pierfrancesco",
-        "subject": [
-          "Quantum Physics",
-          "Computer Science - Computer Science and Game Theory",
-          "Economics - Theoretical Economics"
-        ],
-        "description": [
-          "Motivated by several classic decision-theoretic paradoxes, and by analogies with the paradoxes which in physics motivated the development of quantum mechanics, we introduce a projective generalization of expected utility along the lines of the quantum-mechanical generalization of probability theory. The resulting decision theory accommodates the dominant paradoxes, while retaining significant simplicity and tractability. In particular, every finite game within this larger class of preferences still has an equilibrium.",
-          "Comment: 7 pages, to appear in the Proceedings of Quantum Interaction 2008"
-        ],
-        "date": "2008-02-22",
-        "type": "text",
-        "identifier": [
-          "http://arxiv.org/abs/0802.3300",
-          "J. of Math. Psychology, 53:5 (2009)",
-          "doi:10.1016/j.jmp.2009.02.001"
-        ]
-      }
+        "oai_dc:dc": {
+            "@xmlns:oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
+            "@xmlns:dc": "http://purl.org/dc/elements/1.1/",
+            "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+            "@xsi:schemaLocation": "http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
+            "dc:title": "Sparsity-certifying Graph Decompositions",
+            "dc:creator": [
+                "Streinu, Ileana",
+                "Theran, Louis"
+            ],
+            "dc:subject": [
+                "Mathematics - Combinatorics",
+                "Computer Science - Computational Geometry",
+                "05C85",
+                "05C70",
+                "68R10",
+                "05B35"
+            ],
+            "dc:description": [
+                "We describe a new algorithm, the $(k,\\ell)$-pebble game with colors, and use\nit obtain a characterization of the family of $(k,\\ell)$-sparse graphs and\nalgorithmic solutions to a family of problems concerning tree decompositions of\ngraphs. Special instances of sparse graphs appear in rigidity theory and have\nreceived increased attention in recent years. In particular, our colored\npebbles generalize and strengthen the previous results of Lee and Streinu and\ngive a new proof of the Tutte-Nash-Williams characterization of arboricity. We\nalso present a new decomposition that certifies sparsity based on the\n$(k,\\ell)$-pebble game with colors. Our work also exposes connections between\npebble game algorithms and previous sparse graph algorithms by Gabow, Gabow and\nWestermann and Hendrickson.",
+                "Comment: To appear in Graphs and Combinatorics"
+            ],
+            "dc:date": [
+                "2007-03-30",
+                "2008-12-13"
+            ],
+            "dc:type": "text",
+            "dc:identifier": "http://arxiv.org/abs/0704.0002"
+        }
     }
-  }
 }
 ```
 
@@ -249,7 +273,7 @@ Endpoint to retrieve the summary of an article by its ID.
 ### Method
 
 ```plaintext
-GET /text/<id>.txt
+GET /text/<id>
 ```
 
 Supported attributes:
@@ -265,27 +289,24 @@ Returns `200 OK` and the article summary in JSON format.
 Example request:
 
 ```shell
-curl --url "http://localhost:80/text/<id of an article>.txt"
+curl --url "http://localhost:80/text/<id of an article>"
 ```
 
 Example response:
 
 ```json
 {
-  "record": {
-    "header": {
-      "identifier": "oai:arXiv.org:0802.3300",
-      "datestamp": "2024-01-18",
-      "setSpec": "cs"
+    "_id": {
+        "$oid": "65b819d631f4fc2d19769a97"
     },
     "metadata": {
-      "dc": {
-        "description": [
-          "Motivated by several classic decision-theoretic paradoxes, and by analogies with the paradoxes which in physics motivated the development of quantum mechanics, we introduce a projective generalization of expected utility along the lines of the quantum-mechanical generalization of probability theory. The resulting decision theory accommodates the dominant paradoxes, while retaining significant simplicity and tractability. In particular, every finite game within this larger class of preferences still has an equilibrium."
-        ]
-      }
+        "oai_dc:dc": {
+            "dc:description": [
+                "We describe a new algorithm, the $(k,\\ell)$-pebble game with colors, and use\nit obtain a characterization of the family of $(k,\\ell)$-sparse graphs and\nalgorithmic solutions to a family of problems concerning tree decompositions of\ngraphs. Special instances of sparse graphs appear in rigidity theory and have\nreceived increased attention in recent years. In particular, our colored\npebbles generalize and strengthen the previous results of Lee and Streinu and\ngive a new proof of the Tutte-Nash-Williams characterization of arboricity. We\nalso present a new decomposition that certifies sparsity based on the\n$(k,\\ell)$-pebble game with colors. Our work also exposes connections between\npebble game algorithms and previous sparse graph algorithms by Gabow, Gabow and\nWestermann and Hendrickson.",
+                "Comment: To appear in Graphs and Combinatorics"
+            ]
+        }
     }
-  }
 }
 ```
 
@@ -322,14 +343,47 @@ Returns `201 Created` and a success message with the inserted document ID in JSO
 Example request:
 
 ```shell
-curl --header "Content-Type: application/json" \
-  --request POST \
-  --data '{"header": {"identifier": "new_article_id", "datestamp": "2024-01-23", "setSpec": "
+curl -X POST -H "Content-Type: application/json" -d '{
+  "header": {
+    "identifier": "oai:arXiv.org:0704.0002",
+    "datestamp": {
+      "$date": "2008-12-13T00:00:00Z"
+    },
+    "setSpec": "cs"
+  },
+  "metadata": {
+    "oai_dc:dc": {
+      "@xmlns:oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
+      "@xmlns:dc": "http://purl.org/dc/elements/1.1/",
+      "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+      "@xsi:schemaLocation": "http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
+      "dc:title": "Sparsity-certifying Graph Decompositions",
+      "dc:creator": [
+        "Streinu, Ileana",
+        "Theran, Louis"
+      ],
+      "dc:subject": [
+        "Mathematics - Combinatorics",
+        "Computer Science - Computational Geometry",
+        "05C85",
+        "05C70",
+        "68R10",
+        "05B35"
+      ],
+      "dc:description": [
+        "We describe a new algorithm, the $(k,\\ell)$-pebble game with colors, and use\nit obtain a characterization of the family of $(k,\\ell)$-sparse graphs and\nalgorithmic solutions to a family of problems concerning tree decompositions of\ngraphs. Special instances of sparse graphs appear in rigidity theory and have\nreceived increased attention in recent years. In particular, our colored\npebbles generalize and strengthen the previous results of Lee and Streinu and\ngive a new proof of the Tutte-Nash-Williams characterization of arboricity. We\nalso present a new decomposition that certifies sparsity based on the\n$(k,\\ell)$-pebble game with colors. Our work also exposes connections between\npebble game algorithms and previous sparse graph algorithms by Gabow, Gabow and\nWestermann.",
+        "Comment: To appear in Graphs and Combinatorics"
+      ],
+      "dc:date": [
+        "2007-03-30",
+        "2008-12-13"
+      ],
+      "dc:type": "text",
+      "dc:identifier": "http://arxiv.org/abs/0704.0002"
+    }
+  }
+}' http://localhost:80/articles
 
-ChatGPT
-
-cs"}, "metadata": {"dc": {"title": "New Article"}}}' \
-  --url "http://localhost/api/v1/articles"
 ```
 
 Example response:
@@ -337,7 +391,7 @@ Example response:
 ```json
 {
   "message": "Article inserted successfully",
-  "id": "new_article_id"
+  "id": <id of the new article>
 }
 ```
 
