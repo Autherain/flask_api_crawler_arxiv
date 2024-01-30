@@ -79,8 +79,8 @@ def test_get_article_summary_by_id(client, mock_db_manager):
         200,
     )
 
-    # Send a GET request to the /text/<id>.txt endpoint
-    response = client.get("/text/657dd0d2253a61b7d7eefff8.txt")
+    # Send a GET request to the /text/<id> endpoint
+    response = client.get("/text/657dd0d2253a61b7d7eefff8")
 
     # Assert the response status code and content
     assert response.status_code == 200
@@ -155,8 +155,8 @@ def test_get_article_summary_by_id_error_handling(client, mock_db_manager):
     # Mock the perform_transaction method to raise an exception
     mock_db_manager.perform_transaction.side_effect = Exception("Sample error")
 
-    # Send a GET request to the /text/<id>.txt endpoint
-    response = client.get("/text/657dd0d2253a61b7d7eefff8.txt")
+    # Send a GET request to the /text/<id> endpoint
+    response = client.get("/text/657dd0d2253a61b7d7eefff8")
 
     # Assert the response status code and error message
     assert response.status_code == 500
