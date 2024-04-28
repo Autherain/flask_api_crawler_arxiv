@@ -1,4 +1,10 @@
-# arXviv API
+> [!NOTE]
+> This repository contains a personal project designed to enhance my skills in software engineering. It focuses on developping an API that will periodically retrieve feed data into itself from ArXiv via OAI (open archive initiative). Data is stored inside a Mongo database. The API is accessed through nginx.
+
+> [!IMPORTANT]
+> Many architectural choices and decisions in this project may not make the most efficent sense on purpose for the sake of practicing and learning.
+
+# Arxiv API
 
 <div style="text-align:center">
   <img src="umadbra.gif" alt="Alt Text">
@@ -603,9 +609,3 @@ ASCI ART
 - https://www.digitalocean.com/community/tutorials/how-to-set-up-flask-with-mongodb-and-docker#step-2-writing-the-flask-and-web-server-dockerfiles
 - https://github.com/digitalghost-dev/premier-league/tree/main
 - https://github.com/othneildrew/Best-README-Template
-
-> [!NOTE]
-> This repository contains a personal project designed to enhance my skills in software engineering. It focuses on developping an API that will periodically retrieve feed data into itself from ArXiv via OAI (open archive initiative). Data is stored inside a Mongo database. The API is accessed through nginx.
-
-> [!IMPORTANT]
-> Many architectural choices and decisions in this project may not make the most efficent sense on purpose for the sake of practicing and learning.
